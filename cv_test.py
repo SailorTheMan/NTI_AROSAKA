@@ -39,42 +39,36 @@ def contour_counter(mask):
     #print('Largest area {0}'.format(largest_area))
     return counter
 
+# main callable function
+#  determines the type of cargo underneath
 def count_cargo(img):
+    # top left crop corner coordinates
     y = 120-CROPP_DIM/2
     x = 160-CROPP_DIM/2
-
+    # image processing
     cropped_image = img[y:y+CROPP_DIM, x:x+CROPP_DIM].copy()
     hsv = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2HSV)
 
+    ## HSV filter edges ##
     redLower = np.array((147, 65, 108), np.uint8) 
     redUpper = np.array((243, 150, 254), np.uint8) 
-    # redLower = np.array((169, 60, 167), np.uint8) 
-    # redUpper = np.array((180, 123, 211), np.uint8) 
 
     greenLower = (51, 29, 112)
     greenUpper = (86, 217, 255)
-    # greenLower = (66, 29, 131)
-    # greenUpper = (90, 80, 189)
 
     yellowLower = (27, 70, 70)
     yellowUpper = (62, 150, 240)
-    # yellowLower = (22, 47, 176)
-    # yellowUpper = (39, 104, 231)
 
-    # blueLower = (106, 64, 145)
-    # blueUpper = (110, 110, 170)
     blueLower = (91, 92, 136)
     blueUpper = (120, 209, 200)
+    ##      ##
 
-    rgyb_counts = []
     cargo_type = 'NONE'
     red_mask = cv2.inRange(hsv, redLower, redUpper)
-    #rgyb_counts.append(contour_counter(red_mask))
     if (contour_counter(red_mask)):
         cargo_type = 'RED'
     
     green_mask = cv2.inRange(hsv, greenLower, greenUpper)
-    #rgyb_counts.append(contour_counter(green_mask))
     if (contour_counter(green_mask)):
         cargo_type = 'GREEN'
 
@@ -86,21 +80,16 @@ def count_cargo(img):
     if (contour_counter(blue_mask)):
         cargo_type = 'BLUE'
 
+    # debug stuff 
     if __name__ == '__main__':
         cv2.imshow("crop", cropped_image)
         cv2.waitKey(0)
+    # function output
     print('Cargo: ' + cargo_type)
     if (cargo_type != 'NONE'):
         return (1, cargo_type)
     else: 
         return (0, cargo_type)
-
-    #print('Total: {0}'.format(sum(rgyb_counts)))
-    #print('rgyb: {0}'.format(rgyb_counts))
-
-    #cv2.imshow("mask image r", red_mask)
-    #cv2.imshow("mask image g", green_mask)
-    #cv2.imshow("mask image y", yellow_mask)
     
     
 

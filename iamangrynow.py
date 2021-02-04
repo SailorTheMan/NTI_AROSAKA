@@ -5,8 +5,9 @@ import os
 CROPP_DIM = 120
 
 ###          HOW TO USE          ###
-# Call  recognize_digit([rgb_photo])
+# Call  recognize_digit([ocv_photo])
 # Returned value is recognized digit
+# or -1 if nothing to recognize
 
 def compute_weight(file_path, photo, orb):
     img1 = cv2.imread(file_path,0)          # queryImage
@@ -39,18 +40,18 @@ def compute_weight(file_path, photo, orb):
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     # Match descriptors.
     matches = bf.match(des1,des2)
-    # Sort them in the order of their distance.
+    # Sort them in the order of their 'distance'.
     matches = sorted(matches, key = lambda x:x.distance)
     weight = 1000
     matches_sum = 0
     for match in matches:
         matches_sum += match.distance
     
-    avg_dist = matches_sum / len(matches)
+    avg_dist = matches_sum / len(matches)       # main heuristic to determine digit (lower - better)
     weight = avg_dist
     
 
-    if __name__ == '__main__':
+    if __name__ == '__main__':          #shows matched features in case of direct call
         img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:10], None, flags=2)
         #cv2.drawContours(img3, contours, -1, (255, 0, 255), 2)
         print('File: {0}'.format(file_path))
@@ -100,10 +101,12 @@ def is_anything_green(image):
     return is_green
 
 
-
+# main callable function
 def analyze_frame(photo):
-    y = 120-CROPP_DIM/2
+    # top left crop corner coordinates
+    y = 120-CROPP_DIM/2 
     x = 160-CROPP_DIM/2
+    # process images
     photo = cv2.rotate(photo, cv2.ROTATE_90_CLOCKWISE)
     cropped_image = photo[y:y+CROPP_DIM, x:x+CROPP_DIM].copy()
     gray_crop  = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
@@ -121,9 +124,7 @@ def analyze_frame(photo):
         if cnt_area > max_area:
             max_area = cnt_area
     print(max_area)
-
-
-
+    #                   to get rid of off-screen large areas
     if max_area > 5000 and is_anything_green(cropped_image):
         digit = recognize_digit(cropped_image)
         print(digit)
